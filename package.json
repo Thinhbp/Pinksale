@@ -1,0 +1,56 @@
+{
+  "name": "hardhat-hackathon-boilerplate",
+  "version": "1.0.0",
+  "description": "A npx repository to get you started with Hardhat and Ethereum development",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "hardhat test --network local",
+    "compile": "hardhat compile"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nomiclabs/hardhat-hackathon-boilerplate.git"
+  },
+  "keywords": [
+    "hardhat",
+    "ethereum",
+    "hackathon"
+  ],
+  "author": "Nomic Labs",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/nomiclabs/hardhat-hackathon-boilerplate/issues"
+  },
+  "homepage": "https://github.com/nomiclabs/hardhat-hackathon-boilerplate#readme",
+  "devDependencies": {
+    "@nomiclabs/hardhat-ethers": "^2.0.6",
+    "@nomiclabs/hardhat-waffle": "^2.0.0",
+    "chai": "^4.2.0",
+    "ethereum-waffle": "^3.1.1",
+    "ethers": "^5.7.2",
+    "hardhat": "^2.0.4",
+    "husky": "^4.2.5"
+  },
+  "dependencies": {
+    "@nomiclabs/hardhat-etherscan": "^3.0.1",
+    "@nomiclabs/hardhat-web3": "^2.0.0",
+    "@openzeppelin/contracts": "^4.2.0",
+    "@openzeppelin/contracts-upgradeable": "^4.3.2",
+    "@openzeppelin/hardhat-upgrades": "^1.21.0",
+    "@uniswap/v2-core": "^1.0.1",
+    "@uniswap/v2-periphery": "^1.1.0-beta.0",
+    "dotenv": "^10.0.0",
+    "hardhat-abi-exporter": "^2.2.1",
+    "hardhat-deploy": "^0.8.11",
+    "hardhat-deploy-ethers": "*",
+    "hardhat-gas-reporter": "^1.0.4",
+    "multi-token-standard": "^2.2.2",
+    "sleep-promise": "^9.1.0",
+    "sol-merge": "0.0.1",
+    "sol-merger": "^3.1.0",
+    "solidity-coverage": "^0.7.17",
+    "truffle-privatekey-provider": "^1.5.0"
+  }
+}

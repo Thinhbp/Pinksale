@@ -1,0 +1,12 @@
+node_modules
+.idea
+
+#Hardhat files
+cache
+artifacts
+package-lock.json
+.env
+local
+.testlocal.js
+abi/
+deployments/
