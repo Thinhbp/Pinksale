@@ -9,7 +9,7 @@ interface IGSLock {
         uint256 amount,
         uint256 unlockDate,
         string memory description
-    ) external returns (uint256 lockId);
+    ) external payable returns (uint256 lockId);
 
     function vestingLock(
         address owner,
@@ -21,7 +21,7 @@ interface IGSLock {
         uint256 cycle,
         uint256 cycleBps,
         string memory description
-    ) external returns (uint256 lockId);
+    ) external payable returns (uint256 lockId);
 
     function multipleVestingLock(
         address[] calldata owners,
@@ -33,7 +33,7 @@ interface IGSLock {
         uint256 cycle,
         uint256 cycleBps,
         string memory description
-    ) external returns (uint256[] memory);
+    ) external payable returns (uint256[] memory);
 
     function unlock(uint256 lockId) external;
 
