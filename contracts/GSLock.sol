@@ -22,6 +22,9 @@ contract GSLock is IGSLock, Ownable, Pausable {
     using EnumerableSet for EnumerableSet.UintSet;
     using SafeERC20 for IERC20;
 
+    uint256 public fee;
+    address payable public feeWallet;
+
     struct Lock {
         uint256 id;
         address token;
@@ -93,6 +96,14 @@ contract GSLock is IGSLock, Ownable, Pausable {
         _;
     }
 
+    function setFee(uint256 _fee) public onlyOwner {
+        fee = _fee;
+    }
+
+    function setFeeWallet(address payable _feewallet) public onlyOwner {
+        feeWallet = _feewallet;
+    }
+
     function lock(
         address owner,
         address token,
@@ -100,12 +111,16 @@ contract GSLock is IGSLock, Ownable, Pausable {
         uint256 amount,
         uint256 unlockDate,
         string memory description
-    ) external override whenNotPaused returns (uint256 id) {
+    )  external payable override whenNotPaused  returns (uint256 id) {
         require(
             unlockDate > block.timestamp,
             "Unlock date should be in the future"
         );
         require(amount > 0, "Amount should be greater than 0");
+        if (!isContract(msg.sender)){
+            require(msg.value >= fee, "Not enough fee");
+            payable(feeWallet).transfer(fee);
+        }
         id = _createLock(
             owner,
             token,
@@ -127,6 +142,12 @@ contract GSLock is IGSLock, Ownable, Pausable {
         return id;
     }
 
+    function isContract(address addr) internal returns (bool) {
+        uint size;
+        assembly { size := extcodesize(addr) }
+        return size > 0;
+    }
+
     function vestingLock(
         address owner,
         address token,
@@ -137,7 +158,7 @@ contract GSLock is IGSLock, Ownable, Pausable {
         uint256 cycle,
         uint256 cycleBps,
         string memory description
-    ) external override whenNotPaused returns (uint256 id) {
+    ) external payable override whenNotPaused returns (uint256 id) {
         require(tgeDate > block.timestamp, "TGE date should be in the future");
         require(cycle > 0, "Invalid cycle");
         require(tgeBps > 0 && tgeBps < 10_000, "Invalid bips for TGE");
@@ -147,6 +168,10 @@ contract GSLock is IGSLock, Ownable, Pausable {
             "Sum of TGE bps and cycle should be less than 10000"
         );
         require(amount > 0, "Amount should be greater than 0");
+        if (!isContract(msg.sender)){
+            require(msg.value >= fee, "Not enough fee");
+            payable(feeWallet).transfer(fee);
+        }
         id = _createLock(
             owner,
             token,
@@ -178,7 +203,7 @@ contract GSLock is IGSLock, Ownable, Pausable {
         uint256 cycle,
         uint256 cycleBps,
         string memory description
-    ) external override whenNotPaused returns (uint256[] memory) {
+    ) external payable override whenNotPaused returns (uint256[] memory) {
         require(owners.length == amounts.length, "Length mismatched");
         require(tgeDate > block.timestamp, "TGE date should be in the future");
         require(cycle > 0, "Invalid cycle");
@@ -188,6 +213,11 @@ contract GSLock is IGSLock, Ownable, Pausable {
             tgeBps + cycleBps <= 10_000,
             "Sum of TGE bps and cycle should be less than 10000"
         );
+        if (!isContract(msg.sender)){
+            require(msg.value >= fee, "Not enough fee");
+            payable(feeWallet).transfer(fee);
+        }
+
         return
             _multipleVestingLock(
                 owners,
