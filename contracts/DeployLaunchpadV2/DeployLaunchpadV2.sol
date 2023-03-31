@@ -16,6 +16,7 @@ contract DeployLaunchpadV2 is Ownable {
     address public superAccount;
     address public gsLock;
     address payable public fundAddress;
+    uint256 public percertAffiliate;
 
     event NewLaunchpadV2(address indexed launchpad);
 
@@ -70,9 +71,15 @@ contract DeployLaunchpadV2 is Ownable {
         return (result, totalLiquidityTokens);
     }
 
-    function deployLaunchpad(LaunchpadStructs.LaunchpadInfo memory info, LaunchpadStructs.ClaimInfo memory claimInfo, LaunchpadStructs.TeamVestingInfo memory teamVestingInfo, LaunchpadStructs.DexInfo memory dexInfo, LaunchpadStructs.FeeSystem memory feeInfo) external payable {
+    function deployLaunchpad(LaunchpadStructs.LaunchpadInfo memory info, LaunchpadStructs.ClaimInfo memory claimInfo, LaunchpadStructs.TeamVestingInfo memory teamVestingInfo, LaunchpadStructs.DexInfo memory dexInfo, LaunchpadStructs.FeeSystem memory feeInfo, uint256 _percertAffiliate) external payable {
         require(signer != address(0) && superAccount != address(0) && fundAddress != address(0), 'Can not create launchpad now!');
         require(msg.value >= feeInfo.initFee, 'Not enough fee!');
+        if (!info.affiliate) {
+            percertAffiliate = 0;
+        } else {
+            require(_percertAffiliate >=100 && _percertAffiliate <=1000, "invalid");
+            percertAffiliate = _percertAffiliate;
+        }
 
 
         LaunchpadStructs.SettingAccount memory settingAccount = LaunchpadStructs.SettingAccount(
@@ -102,7 +109,7 @@ contract DeployLaunchpadV2 is Ownable {
         uint256 maxLP;
 
         (totalTokens, maxLP) = calculateTokens(input);
-        LaunchpadV2 launchpad = new LaunchpadV2(info, claimInfo, teamVestingInfo, dexInfo, feeInfo, settingAccount, maxLP);
+        LaunchpadV2 launchpad = new LaunchpadV2(info, claimInfo, teamVestingInfo, dexInfo, feeInfo, settingAccount, maxLP, percertAffiliate);
 
         if (msg.value > 0) {
             payable(fundAddress).transfer(msg.value);
