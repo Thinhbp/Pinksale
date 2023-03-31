@@ -14,6 +14,7 @@ library LaunchpadStructs {
         uint256 endTime;
         uint256 whitelistPool; //0 public, 1 whitelist, 2 public anti bot
         uint256 poolType; //0 burn, 1 refund
+        bool affiliate;
     }
 
     struct ClaimInfo {
