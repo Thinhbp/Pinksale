@@ -23,6 +23,7 @@ contract LaunchpadV2 is Ownable, Pausable {
     EnumerableSet.AddressSet private whiteListUsers;
     EnumerableSet.AddressSet private superAccounts;
     EnumerableSet.AddressSet private whiteListBuyers;
+    // EnumerableSet.AddressSet private award;
 
 
     // mapping(address => bool) public whiteListUsers;
@@ -98,6 +99,9 @@ contract LaunchpadV2 is Ownable, Pausable {
     uint256 public whitelistPool;  //0 public, 1 whitelist, 2 public anti bot
     address public holdingToken;
     uint256 public holdingTokenAmount;
+    bool public affiliate; 
+    uint256 public percertAffiliate;
+    uint256 public affiliateReward;
 
     // contribute vesting
     uint256 public cliffVesting; //First gap release after listing (minutes)
@@ -185,7 +189,7 @@ contract LaunchpadV2 is Ownable, Pausable {
         routerAddress = _router;
     }
 
-    constructor(LaunchpadStructs.LaunchpadInfo memory info, LaunchpadStructs.ClaimInfo memory userClaimInfo, LaunchpadStructs.TeamVestingInfo memory teamVestingInfo,LaunchpadStructs.DexInfo memory dexInfo, LaunchpadStructs.FeeSystem memory feeInfo, LaunchpadStructs.SettingAccount memory settingAccount, uint256 _maxLP) {
+    constructor(LaunchpadStructs.LaunchpadInfo memory info, LaunchpadStructs.ClaimInfo memory userClaimInfo, LaunchpadStructs.TeamVestingInfo memory teamVestingInfo,LaunchpadStructs.DexInfo memory dexInfo, LaunchpadStructs.FeeSystem memory feeInfo, LaunchpadStructs.SettingAccount memory settingAccount, uint256 _maxLP,uint256 _percertAffiliate) {
 
         require(info.icoToken != address(0), 'TOKEN');
         require(info.presaleRate > 0, 'PRESALE');
@@ -210,6 +214,14 @@ contract LaunchpadV2 is Ownable, Pausable {
         endTime = info.endTime;
         whitelistPool = info.whitelistPool;
         poolType = info.poolType;
+        percertAffiliate = _percertAffiliate;
+        affiliate = info.affiliate;
+        affiliateReward = hardCap * percertAffiliate/10_000;
+
+
+
+        
+
 
         cliffVesting = userClaimInfo.cliffVesting;
         lockAfterCliffVesting = userClaimInfo.lockAfterCliffVesting;
@@ -299,10 +311,13 @@ contract LaunchpadV2 is Ownable, Pausable {
         return allocations;
     }
 
+    mapping(address => uint256) public award;
+    uint256 totalReferred = 0;
+
 
 
     // function contribute(uint256 _amount, bytes calldata _sig) external payable whenNotPaused onlyRunningPool {
-    function contribute(uint256 _amount) external payable whenNotPaused onlyRunningPool {
+    function contribute(uint256 _amount, address _presenter) external payable whenNotPaused onlyRunningPool {
         require(startTime <= block.timestamp && endTime >= block.timestamp, 'Invalid time');
         if (whitelistPool == 1) {
             require(whiteListBuyers.contains(_msgSender()), "You are not in whitelist");
@@ -336,7 +351,10 @@ contract LaunchpadV2 is Ownable, Pausable {
             IGSERC20 feeTokenErc20 = IGSERC20(feeToken);
             feeTokenErc20.safeTransferFrom(_msgSender(), address(this), _amount);
         }
-
+        if (_presenter != address(0)) {
+            award[_presenter] += _amount;
+            totalReferred += _amount;
+        }
     }
 
 
@@ -373,6 +391,8 @@ contract LaunchpadV2 is Ownable, Pausable {
         if (feeToken != address(0)) {
             feeTokenDecimals = IGSERC20(feeToken).decimals();
         }
+
+        raisedAmount = raisedAmount - affiliateReward; 
 
         uint256 totalRaisedFeeTokens = raisedAmount*(presaleRate)*(raisedTokenFeePercent)/(10 ** feeTokenDecimals)/(ZOOM);
 
@@ -476,6 +496,20 @@ contract LaunchpadV2 is Ownable, Pausable {
                 'TEAM');
             }
 
+        }
+    }
+
+    function claimCommission() public {
+        require(state == 2 && award[_msgSender()] >0 ,"You can not claim awards");
+        require(affiliate, "Launchpad doesn't include affiliate program");
+        uint256 amount = award[_msgSender()] *  affiliateReward / totalReferred;
+        award[_msgSender()] = 0;
+        if (feeToken == address(0)) {
+            payable(_msgSender()).transfer(amount);
+        }
+        else {
+            IGSERC20 token = IGSERC20(feeToken);
+            token.safeTransfer(_msgSender(), amount);
         }
     }
 
