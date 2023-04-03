@@ -216,7 +216,7 @@ contract LaunchpadV2 is Ownable, Pausable {
         poolType = info.poolType;
         percertAffiliate = _percertAffiliate;
         affiliate = info.affiliate;
-        affiliateReward = hardCap * percertAffiliate/10_000;
+        //affiliateReward = hardCap * percertAffiliate/10_000;
 
 
 
@@ -391,6 +391,7 @@ contract LaunchpadV2 is Ownable, Pausable {
         if (feeToken != address(0)) {
             feeTokenDecimals = IGSERC20(feeToken).decimals();
         }
+        affiliateReward = raisedAmount * percertAffiliate / 10_000;
 
         raisedAmount = raisedAmount - affiliateReward; 
 
