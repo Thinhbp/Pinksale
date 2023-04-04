@@ -218,11 +218,6 @@ contract LaunchpadV2 is Ownable, Pausable {
         affiliate = info.affiliate;
         //affiliateReward = hardCap * percertAffiliate/10_000;
 
-
-
-        
-
-
         cliffVesting = userClaimInfo.cliffVesting;
         lockAfterCliffVesting = userClaimInfo.lockAfterCliffVesting;
         firstReleasePercent = userClaimInfo.firstReleasePercent;
@@ -313,6 +308,14 @@ contract LaunchpadV2 is Ownable, Pausable {
 
     mapping(address => uint256) public award;
     uint256 totalReferred = 0;
+
+    function setAffiliate(uint256 _percent) public onlyWhiteListUser {
+        require(block.timestamp <= endTime, "Invalid Time");
+        require(state == 1, "Can not set finalize");
+        require(_percent >= 100 && _percent <= 1000, "Invalid percent");
+        affiliate = true;
+        percertAffiliate = _percent;
+    }
 
 
 
