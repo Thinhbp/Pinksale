@@ -12,7 +12,7 @@ contract DeployLaunchpadV2 is Ownable {
     //using SafeMath for uint256;
     //using SafeERC20 for IGSERC20;
 
-    address public signer;
+    //address public signer;
     address public superAccount;
     address public gsLock;
     address payable public fundAddress;
@@ -22,20 +22,20 @@ contract DeployLaunchpadV2 is Ownable {
 
     uint256 public constant ZOOM = 10000;
 
-    constructor(address _signer, address _superAccount, address _gsLock, address payable _fundAddress){
-        require(_signer != address(0) && _signer != address(this), 'signer');
+    constructor(address _superAccount, address _gsLock, address payable _fundAddress){
+        //require(_signer != address(0) && _signer != address(this), 'signer');
         require(_gsLock != address(0) && _gsLock != address(this), 'gsLock');
         require(_superAccount != address(0) && _superAccount != address(this), 'superAccount');
         require(_fundAddress != address(0) && _fundAddress != address(this), 'fundAddress');
-        signer = _signer;
+        //signer = _signer;
         superAccount = _superAccount;
         fundAddress = _fundAddress;
         gsLock = _gsLock;
     }
 
-    function setSigner(address _signer) public onlyOwner {
-        signer = _signer;
-    }
+    // function setSigner(address _signer) public onlyOwner {
+    //     signer = _signer;
+    // }
 
     function setSuperAccount(address _superAccount) public onlyOwner {
         superAccount = _superAccount;
@@ -72,7 +72,7 @@ contract DeployLaunchpadV2 is Ownable {
     }
 
     function deployLaunchpad(LaunchpadStructs.LaunchpadInfo memory info, LaunchpadStructs.ClaimInfo memory claimInfo, LaunchpadStructs.TeamVestingInfo memory teamVestingInfo, LaunchpadStructs.DexInfo memory dexInfo, LaunchpadStructs.FeeSystem memory feeInfo, uint256 _percertAffiliate) external payable {
-        require(signer != address(0) && superAccount != address(0) && fundAddress != address(0), 'Can not create launchpad now!');
+        require(superAccount != address(0) && fundAddress != address(0), 'Can not create launchpad now!');
         require(msg.value >= feeInfo.initFee, 'Not enough fee!');
         if (!info.affiliate) {
             percertAffiliate = 0;
@@ -84,7 +84,7 @@ contract DeployLaunchpadV2 is Ownable {
 
         LaunchpadStructs.SettingAccount memory settingAccount = LaunchpadStructs.SettingAccount(
             _msgSender(),
-            signer,
+            //signer,
             superAccount,
             payable(fundAddress),
             gsLock
