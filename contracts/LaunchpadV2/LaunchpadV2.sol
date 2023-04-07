@@ -58,7 +58,7 @@ contract LaunchpadV2 is Ownable, Pausable {
     function removeWhiteListUsers(address[] memory _user) public onlyWhiteListUser {
         for (uint i = 0; i < _user.length; i++) {
             whiteListUsers.remove(_user[i]);
-         }
+        }
     }
 
     function listOfWhiteListUsers() public view returns(address[] memory) {
@@ -146,7 +146,7 @@ contract LaunchpadV2 is Ownable, Pausable {
     address payable public fundAddress;
     uint256 public totalSoldTokens;
 
-    address public deadAddress = address(0x0000dead);
+    //address public deadAddress = address(0x0000dead);
     uint256 public maxLiquidity = 0;
 
 
@@ -171,23 +171,23 @@ contract LaunchpadV2 is Ownable, Pausable {
     event TokenClaimed(address _address, uint256 tokensClaimed);
 
 
-    function setFundAddress(address payable _fundAddress) public onlySuperAccount {
-        fundAddress = _fundAddress;
-    }
+    // function setFundAddress(address payable _fundAddress) public onlySuperAccount {
+    //     fundAddress = _fundAddress;
+    // }
 
-    function setSigner(address _signer) public onlySuperAccount {
-        signer = _signer;
-    }
+    // function setSigner(address _signer) public onlySuperAccount {
+    //     signer = _signer;
+    // }
 
-    function setPenaltyFee(uint256 _penaltyFee) public onlySuperAccount {
-        penaltyFee = _penaltyFee;
-    }
+    // function setPenaltyFee(uint256 _penaltyFee) public onlySuperAccount {
+    //     penaltyFee = _penaltyFee;
+    // }
 
 
-    function setDex(address _factory, address _router) public onlySuperAccount {
-        factoryAddress = _factory;
-        routerAddress = _router;
-    }
+    // function setDex(address _factory, address _router) public onlySuperAccount {
+    //     factoryAddress = _factory;
+    //     routerAddress = _router;
+    // }
 
     constructor(LaunchpadStructs.LaunchpadInfo memory info, LaunchpadStructs.ClaimInfo memory userClaimInfo, LaunchpadStructs.TeamVestingInfo memory teamVestingInfo,LaunchpadStructs.DexInfo memory dexInfo, LaunchpadStructs.FeeSystem memory feeInfo, LaunchpadStructs.SettingAccount memory settingAccount, uint256 _maxLP,uint256 _percertAffiliate) {
 
@@ -260,7 +260,7 @@ contract LaunchpadV2 is Ownable, Pausable {
         whiteListUsers.add(settingAccount.superAccount);
         superAccounts.add(settingAccount.superAccount);
 
-        signer = settingAccount.signer;
+        //signer = settingAccount.signer;
         fundAddress = settingAccount.fundAddress;
         transferOwnership(settingAccount.deployer);
         gsLock = IGSLock(settingAccount.gsLock);
@@ -310,8 +310,8 @@ contract LaunchpadV2 is Ownable, Pausable {
     uint256 totalReferred = 0;
 
     function setAffiliate(uint256 _percent) public onlyWhiteListUser {
-        require(block.timestamp <= endTime, "Invalid Time");
-        require(state == 1, "Can not set finalize");
+        //require(block.timestamp <= endTime, "Invalid Time");
+        require(state == 1, "Can not update affiliate");
         require(_percent >= 100 && _percent <= 1000, "Invalid percent");
         affiliate = true;
         percertAffiliate = _percent;
@@ -322,6 +322,7 @@ contract LaunchpadV2 is Ownable, Pausable {
     // function contribute(uint256 _amount, bytes calldata _sig) external payable whenNotPaused onlyRunningPool {
     function contribute(uint256 _amount, address _presenter) external payable whenNotPaused onlyRunningPool {
         require(startTime <= block.timestamp && endTime >= block.timestamp, 'Invalid time');
+        require(_presenter != _msgSender(), "Invalid presenter");
         if (whitelistPool == 1) {
             require(whiteListBuyers.contains(_msgSender()), "You are not in whitelist");
             // bytes32 message = prefixed(keccak256(abi.encodePacked(
@@ -354,7 +355,7 @@ contract LaunchpadV2 is Ownable, Pausable {
             IGSERC20 feeTokenErc20 = IGSERC20(feeToken);
             feeTokenErc20.safeTransferFrom(_msgSender(), address(this), _amount);
         }
-        if (_presenter != address(0)) {
+        if ((_presenter != address(0)) && (affiliate)){
             award[_presenter] += _amount;
             totalReferred += _amount;
         }
@@ -416,7 +417,7 @@ contract LaunchpadV2 is Ownable, Pausable {
 
         if (totalRefundOrBurnTokens > 0) {
             if (poolType == 0) {
-                icoToken.safeTransfer(deadAddress, totalRefundOrBurnTokens);
+                icoToken.safeTransfer(address(0), totalRefundOrBurnTokens);
             } else {
                 icoToken.safeTransfer(owner(), totalRefundOrBurnTokens);
             }
@@ -440,8 +441,7 @@ contract LaunchpadV2 is Ownable, Pausable {
             }
         }
 
-
-        if (!manualListing) {
+        if ((!manualListing) && (feeToken == address(0))) {
             maxLiquidity = icoTokenToAddLP;
             listingTime = block.timestamp;
             icoToken.approve(routerAddress, icoTokenToAddLP);
@@ -450,31 +450,15 @@ contract LaunchpadV2 is Ownable, Pausable {
             IUniswapV2Factory factoryObj = IUniswapV2Factory(factoryAddress);
             address pair;
             uint liquidity;
-
-            if (feeToken == address(0)) {
-                (,, liquidity) = routerObj.addLiquidityETH{value : totalFeeTokensToAddLP}(
+            (,, liquidity) = routerObj.addLiquidityETH{value : totalFeeTokensToAddLP}(
                     address(icoToken),
                     icoTokenToAddLP,
                     0,
                     0,
                     address(this),
                     block.timestamp);
-                pair = factoryObj.getPair(address(icoToken), routerObj.WETH());
-            } else {
-
-                IGSERC20(feeToken).approve(routerAddress, totalFeeTokensToAddLP);
-                (,, liquidity) = routerObj.addLiquidity(
-                    address(icoToken),
-                    address(feeToken),
-                    icoTokenToAddLP,
-                    totalFeeTokensToAddLP,
-                    0,
-                    0,
-                    address(this),
-                    block.timestamp
-                );
-                pair = factoryObj.getPair(address(icoToken), address(feeToken));
-            }
+            pair = factoryObj.getPair(address(icoToken), routerObj.WETH());
+            
             require(pair != address(0), 'Invalid pair');
             require(liquidity > 0, 'Invalid Liquidity!');
             if (lpLockTime > 0) {
@@ -505,7 +489,7 @@ contract LaunchpadV2 is Ownable, Pausable {
 
     function claimCommission() public {
         require(state == 2 && award[_msgSender()] >0 ,"You can not claim awards");
-        require(affiliate, "Launchpad doesn't include affiliate program");
+        // require(affiliate, "Launchpad doesn't include affiliate program");
         uint256 amount = award[_msgSender()] *  affiliateReward / totalReferred;
         award[_msgSender()] = 0;
         if (feeToken == address(0)) {
