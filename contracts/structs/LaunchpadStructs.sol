@@ -67,7 +67,7 @@ library LaunchpadStructs {
 
     struct SettingAccount {
         address deployer;
-        address signer;
+        //address signer;
         address superAccount; //BNB With Raised Amount
         address payable fundAddress;
         address gsLock;
