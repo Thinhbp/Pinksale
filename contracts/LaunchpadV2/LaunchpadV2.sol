@@ -160,6 +160,8 @@ contract LaunchpadV2 is Ownable, Pausable {
     mapping(address => JoinInfo) public joinInfos;
     EnumerableSet.AddressSet private _joinedUsers; // set of joined users
 
+   
+
 
 
     event Invest(address investor, uint value, uint tokens);
@@ -199,7 +201,18 @@ contract LaunchpadV2 is Ownable, Pausable {
         require(dexInfo.listingPercent <= ZOOM, 'LISTING');
         require(userClaimInfo.firstReleasePercent + userClaimInfo.tokenReleaseEachCycle <= ZOOM , 'VESTING');
         require(teamVestingInfo.teamFirstReleasePercent + teamVestingInfo.teamTokenReleaseEachCycle <= ZOOM, 'Invalid team vst');
-        require(_check(info.icoToken, info.feeToken, dexInfo.routerAddress, dexInfo.factoryAddress), 'LP Added!');
+        //require(_check(info.icoToken, info.feeToken, dexInfo.routerAddress, dexInfo.factoryAddress), 'LP Added!');
+
+
+        if ((info.feeToken == address(0)) && (!dexInfo.manualListing)) { //Auto listing
+            listingPercent = dexInfo.listingPercent;
+            listingPrice = dexInfo.listingPrice;
+            lpLockTime = dexInfo.lpLockTime;
+            require(_check(info.icoToken, info.feeToken, dexInfo.routerAddress, dexInfo.factoryAddress), 'LP Added!');
+            routerAddress = dexInfo.routerAddress;
+            factoryAddress = dexInfo.factoryAddress;
+        }
+        
 
 
         maxLiquidity = _maxLP;
@@ -235,21 +248,7 @@ contract LaunchpadV2 is Ownable, Pausable {
             teamVestingPeriodEachCycle = teamVestingInfo.teamVestingPeriodEachCycle;
             teamTokenReleaseEachCycle = teamVestingInfo.teamTokenReleaseEachCycle;
         }
-
-
-
         manualListing = dexInfo.manualListing;
-
-        if (!manualListing) {
-            require(_check(info.icoToken, info.feeToken, dexInfo.routerAddress, dexInfo.factoryAddress), 'LP Added!');
-            routerAddress = dexInfo.routerAddress;
-            factoryAddress = dexInfo.factoryAddress;
-            listingPrice = dexInfo.listingPrice;
-            listingPercent = dexInfo.listingPercent;
-            lpLockTime = dexInfo.lpLockTime;
-        }
-
-
         raisedFeePercent = feeInfo.raisedFeePercent;
         raisedTokenFeePercent = feeInfo.raisedTokenFeePercent;
         penaltyFee = feeInfo.penaltyFee;
@@ -441,7 +440,7 @@ contract LaunchpadV2 is Ownable, Pausable {
             }
         }
 
-        if ((!manualListing) && (feeToken == address(0))) {
+        if (icoTokenToAddLP !=0) {
             maxLiquidity = icoTokenToAddLP;
             listingTime = block.timestamp;
             icoToken.approve(routerAddress, icoTokenToAddLP);
