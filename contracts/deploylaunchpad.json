@@ -1,0 +1,400 @@
+[
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_superAccount",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "_gsLock",
+				"type": "address"
+			},
+			{
+				"internalType": "address payable",
+				"name": "_fundAddress",
+				"type": "address"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "launchpad",
+				"type": "address"
+			}
+		],
+		"name": "NewLaunchpadV2",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "previousOwner",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "newOwner",
+				"type": "address"
+			}
+		],
+		"name": "OwnershipTransferred",
+		"type": "event"
+	},
+	{
+		"inputs": [],
+		"name": "ZOOM",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"components": [
+					{
+						"internalType": "address",
+						"name": "icoToken",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "feeToken",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "softCap",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "hardCap",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "presaleRate",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "minInvest",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "maxInvest",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "startTime",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "endTime",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "whitelistPool",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "poolType",
+						"type": "uint256"
+					},
+					{
+						"internalType": "bool",
+						"name": "affiliate",
+						"type": "bool"
+					}
+				],
+				"internalType": "struct LaunchpadStructs.LaunchpadInfo",
+				"name": "info",
+				"type": "tuple"
+			},
+			{
+				"components": [
+					{
+						"internalType": "uint256",
+						"name": "cliffVesting",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "lockAfterCliffVesting",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "firstReleasePercent",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "vestingPeriodEachCycle",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "tokenReleaseEachCycle",
+						"type": "uint256"
+					}
+				],
+				"internalType": "struct LaunchpadStructs.ClaimInfo",
+				"name": "claimInfo",
+				"type": "tuple"
+			},
+			{
+				"components": [
+					{
+						"internalType": "uint256",
+						"name": "teamTotalVestingTokens",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "teamCliffVesting",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "teamFirstReleasePercent",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "teamVestingPeriodEachCycle",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "teamTokenReleaseEachCycle",
+						"type": "uint256"
+					}
+				],
+				"internalType": "struct LaunchpadStructs.TeamVestingInfo",
+				"name": "teamVestingInfo",
+				"type": "tuple"
+			},
+			{
+				"components": [
+					{
+						"internalType": "bool",
+						"name": "manualListing",
+						"type": "bool"
+					},
+					{
+						"internalType": "address",
+						"name": "routerAddress",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "factoryAddress",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "listingPrice",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "listingPercent",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "lpLockTime",
+						"type": "uint256"
+					}
+				],
+				"internalType": "struct LaunchpadStructs.DexInfo",
+				"name": "dexInfo",
+				"type": "tuple"
+			},
+			{
+				"components": [
+					{
+						"internalType": "uint256",
+						"name": "initFee",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "raisedFeePercent",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "raisedTokenFeePercent",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "penaltyFee",
+						"type": "uint256"
+					}
+				],
+				"internalType": "struct LaunchpadStructs.FeeSystem",
+				"name": "feeInfo",
+				"type": "tuple"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_percertAffiliate",
+				"type": "uint256"
+			}
+		],
+		"name": "deployLaunchpad",
+		"outputs": [],
+		"stateMutability": "payable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "fundAddress",
+		"outputs": [
+			{
+				"internalType": "address payable",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "gsLock",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "owner",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "percertAffiliate",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "renounceOwnership",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address payable",
+				"name": "_fundAddress",
+				"type": "address"
+			}
+		],
+		"name": "setFundAddress",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_gsLock",
+				"type": "address"
+			}
+		],
+		"name": "setGSLock",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_superAccount",
+				"type": "address"
+			}
+		],
+		"name": "setSuperAccount",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "superAccount",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "newOwner",
+				"type": "address"
+			}
+		],
+		"name": "transferOwnership",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	}
+]
