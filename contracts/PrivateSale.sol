@@ -9,8 +9,8 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 
-import "./libraries/FullMath.sol";
-import "./structs/PrivateSaleStructs.sol";
+import "../libraries/FullMath.sol";
+import "../structs/PrivateSaleStructs.sol";
 
 contract PrivateSale is Ownable, Pausable {
     using EnumerableSet for EnumerableSet.AddressSet;
@@ -25,15 +25,18 @@ contract PrivateSale is Ownable, Pausable {
         bool refund;
     }
 
+    EnumerableSet.AddressSet private whiteListBuyers;
+    EnumerableSet.AddressSet private whiteListAdmins;
 
-    mapping(address => bool) public adminAccounts;
+
+    //mapping(address => bool) public adminAccounts;
     mapping(address => bool) public superAccounts;
     uint256 public privateSaleState; // 1 running||available, 2 finalize, 3 cancel
 
 
 
     modifier onlyWhitelistAdmin() {
-        require(adminAccounts[msg.sender], "Only Admin");
+        require(whiteListAdmins.contains(msg.sender), "Only Admin");
         _;
     }
 
@@ -42,8 +45,16 @@ contract PrivateSale is Ownable, Pausable {
         _;
     }
 
-    function whiteListAdmins(address _user, bool _whiteList) public onlySuperAccount {
-        adminAccounts[_user] = _whiteList;
+    function addWhitelistAdmin(address[] memory _admins) public onlyWhitelistAdmin {
+        for (uint i = 0; i < _admins.length; i++) {
+            whiteListAdmins.add(_admins[i]);
+        }
+    }
+
+    function removeWhitelistAdmin(address[] memory _admins) public onlyWhitelistAdmin {
+        for (uint i = 0; i < _admins.length; i++) {
+            whiteListAdmins.remove(_admins[i]);
+        }
     }
 
     modifier onlyRunning() {
@@ -75,6 +86,7 @@ contract PrivateSale is Ownable, Pausable {
     uint256 public maxInvest;
     uint256 public startTime;
     uint256 public endTime;
+    bool public isWhitelist;
 
     uint256 public tgeDate; // claim Date
     uint256 public tgeBps; // tge percent
@@ -131,6 +143,7 @@ contract PrivateSale is Ownable, Pausable {
 
 
         currency = _privateSaleInfo.currency;
+        isWhitelist = _privateSaleInfo.isWhitelist;
         privateSaleType = _privateSaleInfo.isWhitelist ? 1 : 0;
         softCap = _privateSaleInfo.softCap;
         hardCap = _privateSaleInfo.hardCap;
@@ -152,8 +165,8 @@ contract PrivateSale is Ownable, Pausable {
         signer = _deployInfo.signer;
         superAccounts[_deployInfo.superAccount] = true;
 
-        adminAccounts[_deployInfo.deployer] = true;
-        adminAccounts[_deployInfo.superAccount] = true;
+        whiteListAdmins.add(_deployInfo.deployer);
+        whiteListAdmins.add(_deployInfo.superAccount);
 
         transferOwnership(_deployInfo.deployer);
     }
@@ -165,6 +178,18 @@ contract PrivateSale is Ownable, Pausable {
 
     function setPenaltyPercent(uint256 _penaltyFeePercent) public onlySuperAccount {
         penaltyFeePercent = _penaltyFeePercent;
+    }
+
+    function setWhitelistBuyers(address[] memory _buyers) public onlyWhitelistAdmin {
+        for (uint i = 0; i < _buyers.length; i++) {
+            whiteListBuyers.add(_buyers[i]);
+        }
+    }
+
+    function removeWhitelistBuyers(address[] memory _buyers) public onlyWhitelistAdmin {
+        for (uint i = 0; i < _buyers.length; i++) {
+            whiteListBuyers.remove(_buyers[i]);
+        }
     }
 
     function setFundAddress(
@@ -194,16 +219,18 @@ contract PrivateSale is Ownable, Pausable {
     }
 
 
-    function contribute(uint256 _amount, bytes calldata _sig) external payable whenNotPaused onlyRunning {
+    function contribute(uint256 _amount) external payable whenNotPaused onlyRunning {
         require(startTime <= block.timestamp && endTime >= block.timestamp, 'Invalid time');
         address user = _msgSender();
 
         if (privateSaleType == 1) {
-            bytes32 message = prefixed(keccak256(abi.encodePacked(
-                    _msgSender(),
-                    address(this)
-                )));
-            require(recoverSigner(message, _sig) == signer, 'Not In Whitelist');
+            // bytes32 message = prefixed(keccak256(abi.encodePacked(
+            //         _msgSender(),
+            //         address(this)
+            //     )));
+            // require(recoverSigner(message, _sig) == signer, 'Not In Whitelist');
+
+            require(whiteListBuyers.contains(user),"You are not in whitelist");
         } else if (privateSaleType == 2) {
             require(IERC20(holdingToken).balanceOf(user) >= holdingAmount, 'Insufficient holding');
         }
@@ -453,6 +480,19 @@ contract PrivateSale is Ownable, Pausable {
         return result;
     }
 
+    function getInfo() public view returns(PrivateSaleStructs.PrivateSaleInfo memory) {
+        PrivateSaleStructs.PrivateSaleInfo memory info ;
+        info.currency = currency;
+        info.isWhitelist = isWhitelist;
+        info.softCap = softCap;
+        info.hardCap = hardCap;
+        info.minInvest = minInvest;
+        info.maxInvest = maxInvest;
+        info.startTime = startTime;
+        info.endTime = endTime;
+        return info;
+    }
+
 
     function pause() public onlyOwner whenNotPaused {
         _pause();
@@ -462,52 +502,52 @@ contract PrivateSale is Ownable, Pausable {
         _unpause();
     }
 
-    function prefixed(bytes32 hash) internal pure returns (bytes32) {
-        return
-        keccak256(
-            abi.encodePacked("\x19Ethereum Signed Message:\n32", hash)
-        );
-    }
+    // function prefixed(bytes32 hash) internal pure returns (bytes32) {
+    //     return
+    //     keccak256(
+    //         abi.encodePacked("\x19Ethereum Signed Message:\n32", hash)
+    //     );
+    // }
 
-    function recoverSigner(bytes32 message, bytes memory sig)
-    internal
-    pure
-    returns (address)
-    {
-        uint8 v;
-        bytes32 r;
-        bytes32 s;
+    // function recoverSigner(bytes32 message, bytes memory sig)
+    // internal
+    // pure
+    // returns (address)
+    // {
+    //     uint8 v;
+    //     bytes32 r;
+    //     bytes32 s;
 
-        (v, r, s) = splitSignature(sig);
+    //     (v, r, s) = splitSignature(sig);
 
-        return ecrecover(message, v, r, s);
-    }
+    //     return ecrecover(message, v, r, s);
+    // }
 
-    function splitSignature(bytes memory sig)
-    internal
-    pure
-    returns (
-        uint8,
-        bytes32,
-        bytes32
-    )
-    {
-        require(sig.length == 65);
+    // function splitSignature(bytes memory sig)
+    // internal
+    // pure
+    // returns (
+    //     uint8,
+    //     bytes32,
+    //     bytes32
+    // )
+    // {
+    //     require(sig.length == 65);
 
-        bytes32 r;
-        bytes32 s;
-        uint8 v;
+    //     bytes32 r;
+    //     bytes32 s;
+    //     uint8 v;
 
-        assembly {
-        // first 32 bytes, after the length prefix
-            r := mload(add(sig, 32))
-        // second 32 bytes
-            s := mload(add(sig, 64))
-        // final byte (first byte of the next 32 bytes)
-            v := byte(0, mload(add(sig, 96)))
-        }
+    //     assembly {
+    //     // first 32 bytes, after the length prefix
+    //         r := mload(add(sig, 32))
+    //     // second 32 bytes
+    //         s := mload(add(sig, 64))
+    //     // final byte (first byte of the next 32 bytes)
+    //         v := byte(0, mload(add(sig, 96)))
+    //     }
 
-        return (v, r, s);
-    }
+    //     return (v, r, s);
+    // }
 
 }
