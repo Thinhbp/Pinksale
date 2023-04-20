@@ -305,7 +305,19 @@ contract LaunchpadV2 is Ownable, Pausable {
         return allocations;
     }
 
-    mapping(address => uint256) public award;
+    struct infoAffiliate {
+        uint256 yourReward;
+        uint256 poolReferrerCount;
+        uint256 maxReward;
+        uint256 totalRefAmount;
+        uint256 totalReward;
+        address[] users;
+        uint256[] amounts;
+    }
+
+
+
+    mapping(address => infoAffiliate) public award;
     uint256 totalReferred = 0;
 
     function setAffiliate(uint256 _percent) public onlyWhiteListUser {
@@ -355,7 +367,11 @@ contract LaunchpadV2 is Ownable, Pausable {
             feeTokenErc20.safeTransferFrom(_msgSender(), address(this), _amount);
         }
         if ((_presenter != address(0)) && (affiliate)){
-            award[_presenter] += _amount;
+            award[_presenter].totalRefAmount+= _amount;
+            award[_presenter].poolReferrerCount += 1;
+            award[_presenter].users.push(_msgSender());
+            award[_presenter].amounts.push(_amount);
+
             totalReferred += _amount;
         }
     }
@@ -487,10 +503,10 @@ contract LaunchpadV2 is Ownable, Pausable {
     }
 
     function claimCommission() public {
-        require(state == 2 && award[_msgSender()] >0 ,"You can not claim awards");
+        require(state == 2 && award[_msgSender()].totalRefAmount>0 ,"You can not claim awards");
         // require(affiliate, "Launchpad doesn't include affiliate program");
-        uint256 amount = award[_msgSender()] *  affiliateReward / totalReferred;
-        award[_msgSender()] = 0;
+        uint256 amount = award[_msgSender()].totalRefAmount *  affiliateReward / totalReferred;
+        award[_msgSender()].totalRefAmount= 0;
         if (feeToken == address(0)) {
             payable(_msgSender()).transfer(amount);
         }
@@ -702,6 +718,19 @@ contract LaunchpadV2 is Ownable, Pausable {
             index++;
         }
         return result;
+    }
+
+    function getInfoAffiliate() public returns(infoAffiliate memory) {
+        infoAffiliate memory infoaffiliate = award[msg.sender];
+        infoaffiliate.yourReward = award[msg.sender].totalRefAmount * affiliateReward / totalReferred;
+        infoaffiliate.poolReferrerCount = award[msg.sender].poolReferrerCount;
+        infoaffiliate.maxReward = hardCap * percertAffiliate / 10_000;
+        infoaffiliate.totalRefAmount = award[msg.sender].totalRefAmount;
+        infoaffiliate.totalReward = affiliateReward;
+        infoaffiliate.users = award[msg.sender].users;
+        infoaffiliate.amounts = award[msg.sender].amounts;
+        return infoaffiliate;
+
     }
 
 
